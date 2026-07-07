@@ -7,6 +7,7 @@ import {
   type FaceViewParams,
   type FaceViewTemplateCtor,
 } from 'face-view'
+import config from 'mc/config'
 import type {
   ApplicationDictionary,
   Application as PiuApplication,
@@ -122,6 +123,7 @@ export class AppController extends Behavior {
   }
 
   onFaceTouch(): void {
+    if (config.breathHostMod) return
     trace('[AppController] onFaceTouch\n')
     this.onDrawerToggle()
   }

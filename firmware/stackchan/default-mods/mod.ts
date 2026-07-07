@@ -1,5 +1,5 @@
+import breathMod from 'breath/mod'
 import { onLaunch } from 'default-mods/on-launch'
-import { onRobotCreated } from 'default-mods/on-robot-created'
 import type { Robot } from 'robot'
 
 export interface StackchanMod {
@@ -7,7 +7,10 @@ export interface StackchanMod {
   onRobotCreated?: (robot: Robot, option?: unknown) => Promise<void> | void
 }
 
+const { onRobotCreated } = breathMod
+
+export { onRobotCreated }
 export default {
-  onRobotCreated,
   onLaunch,
+  onRobotCreated,
 }

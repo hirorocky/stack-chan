@@ -11,6 +11,7 @@ import Modules from 'modules'
 import { NetworkService } from 'network-service'
 import { NoneDriver } from 'none-driver'
 import PY32Led from 'py32-led'
+import { Renderer as BreathRenderer } from 'renderer-breath'
 import { Renderer as DogFaceRenderer } from 'renderer-dog'
 import { Renderer as ImageFaceRenderer } from 'renderer-image'
 import { Renderer as SimpleRenderer } from 'renderer-simple'
@@ -100,6 +101,7 @@ function createRobot() {
     ['openai', (param) => new OpenAITTS(param as ConstructorParameters<typeof OpenAITTS>[0])],
   ])
   const renderers = new Map<string, (param: unknown) => Renderer>([
+    ['breath', (param) => new BreathRenderer(param)],
     ['dog', (param) => new DogFaceRenderer(param as ConstructorParameters<typeof DogFaceRenderer>[0])],
     ['simple', (param) => new SimpleRenderer(param as ConstructorParameters<typeof SimpleRenderer>[0])],
     ['image', (param) => new ImageFaceRenderer(param as ConstructorParameters<typeof ImageFaceRenderer>[0])],
@@ -110,7 +112,10 @@ function createRobot() {
 
   // Servo Driver
   const driverPrefs = loadPreferences('driver')
-  const driverKey = driverPrefs.type ?? 'scservo'
+  const driverKey = config.breathHostMod ? 'none' : (driverPrefs.type ?? 'scservo')
+  if (config.breathHostMod) {
+    trace('[main] breathHostMod: none driver (face only, no servo poll)\n')
+  }
   const Driver = drivers.get(driverKey)
 
   // TTS
@@ -120,7 +125,7 @@ function createRobot() {
 
   // Renderer
   const rendererPrefs = loadPreferences('renderer')
-  const rendererKey = rendererPrefs.type ?? 'simple'
+  const rendererKey = rendererPrefs.type ?? (config.breathHostMod ? 'breath' : 'simple')
   const Renderer = renderers.get(rendererKey)
 
   if (!Driver || !TTS || !Renderer) {
@@ -279,7 +284,9 @@ async function main() {
   trace('[main] loading default mod\n')
   let { onRobotCreated, onLaunch } = defaultMod
   trace('[main] checking mod override\n')
-  if (Modules.has('mod')) {
+  if (config.breathHostMod) {
+    trace('[main] breathHostMod: using host default-mods/mod, skipping mod partition\n')
+  } else if (Modules.has('mod')) {
     const mod = Modules.importNow('mod') as StackchanMod
     onRobotCreated = mod.onRobotCreated ?? onRobotCreated
     onLaunch = mod.onLaunch ?? onLaunch

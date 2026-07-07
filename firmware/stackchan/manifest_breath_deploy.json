@@ -8,8 +8,19 @@
     "breathDevTools": true,
     "devToken": "breath-dev",
     "driver": {
-      "type": "none"
-    }
+      "type": "m5stackchan",
+      "panId": 1,
+      "tiltId": 2,
+      "yawZeroPosition": 460,
+      "pitchZeroPosition": 620,
+      "serial": {
+        "transmit": 6,
+        "receive": 7,
+        "port": 1,
+        "baud": 1000000
+      }
+    },
+    "gazeServoFollowDeg": 45
   },
   "defines": {
     "ota": {
@@ -27,6 +38,7 @@
     "breath/mic": "../../../overlay/mods/breath/mic",
     "breath/reactions": "../../../overlay/mods/breath/reactions",
     "breath/emotion": "../../../overlay/mods/breath/emotion",
+    "breath/posture": "../../../overlay/mods/breath/posture",
     "breath/led": "../../../overlay/mods/breath/led",
     "breath/param-store": "../../../overlay/mods/breath/param-store",
     "renderer-breath": "../../../overlay/mods/breath/face/renderer-breath",

@@ -14,10 +14,10 @@ file format allows):
 |---|---|
 | `firmware/package.json` | `build:breath` / `deploy:breath` npm scripts |
 | `firmware/stackchan/manifest.json` | TypeScript `Disposable` lib |
-| `firmware/stackchan/main.ts` | `breathHostMod`: skip MOD-partition override; register `renderer-breath` and make it the default when `breathHostMod` is set |
+| `firmware/stackchan/main.ts` | `breathHostMod`: skip MOD-partition override; register `renderer-breath` and make it the default when `breathHostMod` is set. E3: `driverKey` now prefers an explicit `driver.type` (config/preference) over the `breathHostMod` none/scservo default, so breath can opt into a real servo driver; `Driver(driverPrefs)` construction is wrapped in try/catch, falling back to `NoneDriver` on throw so a UART/servo fault can't blank the screen |
 | `firmware/stackchan/default-mods/mod.ts` | import `breath/mod` as the default mod |
 | `firmware/stackchan/renderers-piu/app-controller.ts` | do not open the drawer UI on face tap when `breathHostMod` |
-| `firmware/stackchan/robot.ts` | gaze normalization fix: `Math.cos` → `Math.sin` (cos is even — direction sign was lost; upstream PR candidate) |
+| `firmware/stackchan/robot.ts` | gaze normalization fix: `Math.cos` → `Math.sin` (cos is even — direction sign was lost; upstream PR candidate). E3: the head-follow gaze threshold (`updatePose`, was a fixed `Math.PI/6` = 30°) is now `config.gazeServoFollowDeg ?? 30` (breath sets 45° to keep idle saccades from moving the neck servo as often) |
 | `firmware/platforms/m5stackchan_cores3/manifest.json` | register `m5stackchan/battery` module |
 | `firmware/platforms/m5stackchan_cores3/host/provider.js` | capture the AXP2101 SMBus io for battery readout |
 

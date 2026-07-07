@@ -112,8 +112,11 @@ function createRobot() {
 
   // Servo Driver
   const driverPrefs = loadPreferences('driver')
-  const driverKey = config.breathHostMod ? 'none' : (driverPrefs.type ?? 'scservo')
-  if (config.breathHostMod) {
+  // breath MOD: config/preference が明示した driver.type を最優先する。未指定のときだけ
+  // breathHostMod で 'none'/'scservo' を振り分ける(E3 でサーボを解禁するため、
+  // breath 用 manifest 側の driver.type: "m5stackchan" がこの分岐より先に効くようにする)。
+  const driverKey = driverPrefs.type ?? (config.breathHostMod ? 'none' : 'scservo')
+  if (config.breathHostMod && !driverPrefs.type) {
     trace('[main] breathHostMod: none driver (face only, no servo poll)\n')
   }
   const Driver = drivers.get(driverKey)
@@ -141,7 +144,15 @@ function createRobot() {
     throw new Error(errors.join('\n'))
   }
 
-  const driver = Driver(driverPrefs)
+  // breath MOD: サーボドライバの構築が(UART 不調等で)throw しても起動不能(画面真っ白)に
+  // しない。trace して NoneDriver にフォールバックし、顔だけは必ず動くようにする。
+  let driver: Driver
+  try {
+    driver = Driver(driverPrefs)
+  } catch (error) {
+    trace(`[main] breath MOD: driver "${driverKey}" construction failed, falling back to none driver: ${error}\n`)
+    driver = new NoneDriver()
+  }
   const renderer = Renderer(rendererPrefs)
   const tts = TTS(ttsPrefs)
 

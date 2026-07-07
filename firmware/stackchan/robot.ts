@@ -4,6 +4,7 @@ import { SpeechBalloon } from 'effects/speech-balloon'
 import { createFaceContext, type Emotion, type FaceContext } from 'face-context'
 import type IMU from 'imu'
 import type Led from 'led'
+import config from 'mc/config'
 import type Microphone from 'microphone'
 import type { Container as PiuContainer, Content as PiuContent } from 'piu/MC'
 import { generateDeviceSeed, type Maybe, noop, type Pose, Rotation, randomBetween, Vector3 } from 'stackchan-util'
@@ -15,6 +16,10 @@ import type TouchPanel from 'touch-panel'
 const INTERVAL_FACE = 1000 / 30
 const INTERVAL_POSE = 1000 / 10
 const HEX_DIGITS = '0123456789abcdef'
+// breath MOD: 首(サーボ)追従の閾値。既定は upstream 通り 30°(Math.PI/6)だが、
+// config.gazeServoFollowDeg で上書きできるようにする。breath では idle サッカードの
+// 大半が首を動かして騒音になるのを防ぐため 45° に上げる(manifest_breath_deploy.json)。
+const GAZE_SERVO_FOLLOW_RAD = ((config.gazeServoFollowDeg ?? 30) * Math.PI) / 180
 
 function toHexByte(value: number): string {
   const clamped = Math.max(0, Math.min(255, value | 0))
@@ -654,7 +659,12 @@ export class Robot {
         p: -this.#pose.body.rotation.p,
       })
       const { y, p } = Rotation.fromVector3(relativeGazePoint)
-      if (y > Math.PI / 6 || y < -Math.PI / 6 || p > Math.PI / 6 || p < -Math.PI / 6) {
+      if (
+        y > GAZE_SERVO_FOLLOW_RAD ||
+        y < -GAZE_SERVO_FOLLOW_RAD ||
+        p > GAZE_SERVO_FOLLOW_RAD ||
+        p < -GAZE_SERVO_FOLLOW_RAD
+      ) {
         this.#isMoving = true
         const time = randomBetween(0.5, 1.0)
         await this.#driver.setTorque(true)

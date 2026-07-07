@@ -16,7 +16,8 @@
       "autosplit": 1
     },
     "audioIn": {
-      "numChannels": 2
+      "numChannels": 2,
+      "sampleRate": 48000
     }
   },
   "modules": {

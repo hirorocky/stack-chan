@@ -32,6 +32,14 @@ import SMBus from "embedded:io/smbus";
 import SPI from "embedded:io/spi";
 import Touch from "M5StackCoreS3Touch";
 import TouchPanel from "embedded:sensor/Touch/Si12T"
+import { registerPowerIO } from "m5stackchan/battery";
+
+class BreathSMBus extends SMBus {
+	constructor(options) {
+		super(options);
+		if (0x34 === options?.address) registerPowerIO(this);
+	}
+}
 
 const device = {
 	I2C: {
@@ -78,7 +86,7 @@ const device = {
 		PulseWidth,
 		PWM,
 		Serial,
-		SMBus,
+		SMBus: BreathSMBus,
 		SPI,
 	},
 	pin: {

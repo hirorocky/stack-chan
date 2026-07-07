@@ -8,7 +8,8 @@
   ],
   "modules": {
     "m5stack-cores3/setup-target": "$(BUILD)/devices/esp32/targets/m5stack_cores3/setup-target",
-    "setup/target": "./setup-target"
+    "setup/target": "./setup-target",
+    "m5stackchan/battery": "./battery-registry"
   },
   "config": {
     "driver": {

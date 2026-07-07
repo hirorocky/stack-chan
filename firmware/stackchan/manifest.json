@@ -280,7 +280,8 @@
   "typescript": {
     "tsconfig": {
       "compilerOptions": {
-        "noImplicitAny": false
+        "noImplicitAny": false,
+        "lib": ["es2025", "esnext.disposable"]
       }
     }
   }

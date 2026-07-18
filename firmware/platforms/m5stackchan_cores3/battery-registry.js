@@ -4,8 +4,23 @@
 let powerIO = null;
 let gaugeEnabled = false;
 
+const REG_POWER_OFF_CONTROL = 0x10;
+const REG_POWER_ON_SOURCE = 0x20;
+const REG_PWROK_SETTING = 0x25;
+const REG_IRQ_ENABLE1 = 0x41;
+const POWER_KEY_IRQ_MASK = 0x0c;
+
 export function registerPowerIO(io) {
 	powerIO = io;
+	try {
+		// AXP2101 only latches REG49 PEK events when their matching IRQ-enable
+		// bits are set. Disable the later hardware cut and let breath handle the
+		// earlier long-press IRQ before requesting orderly software power-off.
+		io.writeUint8(0x22, io.readUint8(0x22) & ~0x02);
+		io.writeUint8(REG_IRQ_ENABLE1, io.readUint8(REG_IRQ_ENABLE1) | POWER_KEY_IRQ_MASK);
+	} catch (error) {
+		trace(`[m5stackchan/battery] power-key setup failed: ${error}\n`);
+	}
 	trace("[m5stackchan/battery] power io captured\n");
 }
 
@@ -69,5 +84,42 @@ export function getBacklightVoltage() {
 	} catch (error) {
 		trace(`[m5stackchan/battery] backlight read failed: ${error}\n`);
 		return null;
+	}
+}
+
+export function readPowerOnSource() {
+	if (!powerIO) return null;
+	try {
+		return powerIO.readUint8(REG_POWER_ON_SOURCE);
+	} catch (error) {
+		trace(`[m5stackchan/battery] power-on source read failed: ${error}\n`);
+		return null;
+	}
+}
+
+export function readPowerKeyState() {
+	if (!powerIO) return 0;
+	try {
+		const state = powerIO.readUint8(0x49) & POWER_KEY_IRQ_MASK;
+		if (state) powerIO.writeUint8(0x49, state);
+		return state;
+	} catch (error) {
+		trace(`[m5stackchan/battery] power-key read failed: ${error}\n`);
+		return 0;
+	}
+}
+
+export function requestPowerOff() {
+	if (!powerIO) return false;
+	try {
+		// Match the SDK AXP2101 powerOff sequence: sleep/wakeup policy first,
+		// then request software power-off through REG10H[0].
+		powerIO.writeUint8(REG_PWROK_SETTING, 0x1b);
+		const control = powerIO.readUint8(REG_POWER_OFF_CONTROL);
+		powerIO.writeUint8(REG_POWER_OFF_CONTROL, control | 0x01);
+		return true;
+	} catch (error) {
+		trace(`[m5stackchan/battery] power-off request failed: ${error}\n`);
+		return false;
 	}
 }

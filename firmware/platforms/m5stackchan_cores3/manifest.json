@@ -7,6 +7,8 @@
     "$(MODDABLE)/modules/drivers/sensors/si12t/manifest.json"
   ],
   "modules": {
+    "m5stackchan/ft6206-polling": "$(MODDABLE)/modules/drivers/sensors/ft6206/ft6206",
+    "m5stackchan/cores3-touch": "./M5StackChanCoreS3Touch",
     "m5stack-cores3/setup-target": "$(BUILD)/devices/esp32/targets/m5stack_cores3/setup-target",
     "setup/target": "./setup-target",
     "m5stackchan/battery": "./battery-registry"

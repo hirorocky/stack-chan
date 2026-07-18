@@ -30,7 +30,7 @@ import PWM from "embedded:io/pwm";
 import Serial from "embedded:io/serial";
 import SMBus from "embedded:io/smbus";
 import SPI from "embedded:io/spi";
-import Touch from "M5StackCoreS3Touch";
+import Touch from "m5stackchan/cores3-touch";
 import TouchPanel from "embedded:sensor/Touch/Si12T"
 import { registerPowerIO } from "m5stackchan/battery";
 

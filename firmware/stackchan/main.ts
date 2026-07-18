@@ -22,7 +22,6 @@ import { SCServoDriver } from 'scservo-driver'
 import { PWMServoDriver } from 'sg90-driver'
 import { asyncWait } from 'stackchan-util'
 import Tone from 'tone'
-import Touch from 'touch'
 import TouchPanel from 'touch-panel'
 import { TTS as ElevenLabsTTS } from 'tts-elevenlabs'
 import { TTS as LocalTTS } from 'tts-local'
@@ -156,7 +155,9 @@ function createRobot() {
   const renderer = Renderer(rendererPrefs)
   const tts = TTS(ttsPrefs)
 
-  const touch = config.Touch ? new Touch(config.Touch) : undefined
+  // Piu owns the CoreS3 display touch instance. Opening another FT6x06 instance
+  // here fails with a duplicate I2C address and is unnecessary for Piu input.
+  const touch = undefined
   const touchPanel = globalEnv.device?.sensor?.TouchPanel
     ? new TouchPanel(globalEnv.device.sensor.TouchPanel as ConstructorParameters<typeof TouchPanel>[0])
     : undefined

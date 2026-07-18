@@ -6,6 +6,7 @@
   "config": {
     "breathHostMod": true,
     "breathDevTools": true,
+    "enablePowerButton": false,
     "devToken": "breath-dev",
     "driver": {
       "type": "m5stackchan",
@@ -40,6 +41,7 @@
     "breath/emotion": "../../../overlay/mods/breath/emotion",
     "breath/posture": "../../../overlay/mods/breath/posture",
     "breath/led": "../../../overlay/mods/breath/led",
+    "breath/power": "../../../overlay/mods/breath/power",
     "breath/param-store": "../../../overlay/mods/breath/param-store",
     "renderer-breath": "../../../overlay/mods/breath/face/renderer-breath",
     "breath-face": "../../../overlay/mods/breath/face/breath-face",

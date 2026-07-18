@@ -1,5 +1,53 @@
 import AXP2101 from "embedded:peripheral/Power/axp2101";
 import baseSetup from "m5stack-cores3/setup-target";
+import config from "mc/config";
+import Timer from "timer";
+
+class BreathPowerButton {
+	#value = 0;
+	read() {
+		return this.#value;
+	}
+	write(value) {
+		if (this.#value === value) return;
+		this.#value = value;
+		this.onChanged?.();
+	}
+}
+
+function setupBreathPowerButton() {
+	if (!config.breathHostMod) return;
+	// The SDK setup also polls getPekState() and clears AXP2101's latched event.
+	// Share each non-zero read briefly so neither poller can consume it first.
+	const readPekState = globalThis.power.getPekState.bind(globalThis.power);
+	let cachedState = 0;
+	let clearCacheTimer;
+	globalThis.power.getPekState = () => {
+		if (cachedState) return cachedState;
+		const state = readPekState();
+		if (state) {
+			cachedState = state;
+			if (clearCacheTimer) Timer.clear(clearCacheTimer);
+			clearCacheTimer = Timer.set(() => {
+				cachedState = 0;
+				clearCacheTimer = undefined;
+			}, 40);
+		}
+		return state;
+	};
+	const button = new BreathPowerButton();
+	globalThis.button.power = button;
+	Timer.repeat(() => {
+		const state = globalThis.power.getPekState();
+		if (state) {
+			globalThis.breathPowerRawEventCount = (globalThis.breathPowerRawEventCount ?? 0) + 1;
+			globalThis.breathPowerRawState = state;
+		}
+		button.write(state);
+		if (state) Timer.set(() => button.write(0), 0);
+	}, 10);
+	trace("[m5stackchan] raw AXP2101 power button enabled\n");
+}
 
 // Mirrors the CoreS3 power-rail setup used by M5Stack/StackChan firmware
 // (`firmware/main/hal/board/stackchan.cc` near the AXP2101 init path) and the
@@ -17,6 +65,11 @@ function patchStackChanPower() {
 	axp2101.writeByte(0x97, 0b11110 - 2);
 	// Configure VBUS input current limit and power-path behavior.
 	axp2101.writeByte(0x69, 0b00110101);
+	// Do not let OFFLEVEL cut power before breath can clear the external PY32
+	// LED RAM. The earlier long-press IRQ is handled by breath/power, which then
+	// performs an orderly software power-off through REG10H[0].
+	const powerOff = axp2101.readByte(0x22);
+	axp2101.writeByte(0x22, powerOff & ~0x02);
 	// Enable required DCDC outputs.
 	axp2101.writeByte(0x30, 0b111111);
 	// Force the final LDO enable mask after the voltage selectors are set.
@@ -40,6 +93,7 @@ export default function (done) {
 		} catch (error) {
 			trace(`[m5stackchan] AXP2101 power patch failed: ${error}\n`);
 		}
+		setupBreathPowerButton();
 		done?.();
 	});
 }

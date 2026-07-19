@@ -1,0 +1,159 @@
+{
+  "defines": {
+    "XS_MODS": 1,
+    "file": {
+      "partition": "#storage"
+    }
+  },
+  "include": [
+    "$(MODDABLE)/examples/manifest_base.json",
+    "$(MODDABLE)/examples/manifest_typings.json",
+    "$(MODDABLE)/examples/manifest_net.json",
+    "$(MODDABLE)/examples/manifest_piu.json",
+    "$(MODDABLE)/modules/io/manifest.json",
+    "$(MODDABLE)/modules/io/update/manifest.json",
+    "$(MODDABLE)/modules/io/audioin/manifest.json",
+    "$(MODDABLE)/modules/pins/i2s/manifest.json",
+    "$(MODDABLE)/modules/files/preference/manifest.json",
+    "$(MODDABLE)/modules/base/structuredClone/manifest.json",
+    "$(MODDABLE)/modules/base/deepEqual/manifest.json",
+    "$(MODDABLE)/modules/base/modules/manifest.json",
+    "$(MODDABLE)/modules/network/wifi/manifest.json",
+    "$(MODDABLE)/modules/network/mdns/manifest.json",
+    "$(MODDABLE)/examples/io/listener/httpserver/manifest_httpserver.json",
+    "$(MODDABLE)/modules/piu/MC/outline/manifest.json",
+    "$(MODDABLE)/modules/commodetto/outline/manifest.json",
+    "./manifest_typings.json"
+  ],
+  "modules": {
+    "main": "./main-breath",
+    "breath-policy-loader": "./breath-policy-loader",
+    "robot": "./robot",
+    "microphone": "./microphone",
+    "loadPreference": "./utilities/loadPreference",
+    "stackchan-util": "./utilities/stackchan-util",
+    "consts": "./utilities/consts",
+    "mac-address": "./utilities/esp32/mac-address",
+    "network-service": "./services/network-service",
+    "wifi/connection": "$(MODDABLE)/examples/network/wifi/wificonnection/wificonnection",
+    "m5stackchan-servo": "./drivers/m5stackchan-servo",
+    "m5stackchan-servo-driver": "./drivers/m5stackchan-servo-driver",
+    "scservo": "./drivers/scservo",
+    "none-driver": "./drivers/none-driver",
+    "payload-buffer": "./drivers/payload-buffer",
+    "single-wait-slot": "./drivers/internal/single-wait-slot",
+    "led": "./led/led",
+    "py32-io-expander": "./led/py32-io-expander",
+    "py32-led": "./led/py32-led",
+    "neostrand": "$(MODDABLE)/modules/drivers/neostrand/neostrand",
+    "piu/Timeline": "$(MODDABLE)/modules/piu/All/piuTimeline",
+    "face-context": "./renderers-piu/face-context",
+    "effects/speech-balloon": "./renderers-piu/effects/speech-balloon",
+    "app-controller": "./renderers-piu/app-controller",
+    "renderer-compat": "./renderers-piu/renderer-compat",
+    "chat-status-bar": "./renderers-piu/chat-status-bar",
+    "face-view": "./renderers-piu/face-view",
+    "common-view": "./renderers-piu/common-view",
+    "face-skin": "./renderers-piu/face-skin",
+    "drawer": "./renderers-piu/drawer",
+    "template": "./renderers-piu/template",
+    "behaviors/face": "./renderers-piu/behaviors/face",
+    "motions/blink": "./renderers-piu/motions/blink",
+    "motions/*": "./renderers-piu/motions/*",
+    "parts/*": "./renderers-piu/parts/*",
+    "parts/dog/*": "./renderers-piu/parts/dog/*",
+    "parts/image/*": "./renderers-piu/parts/image/*",
+    "camera": "./camera",
+    "imu": "./imu",
+    "imu-motion": "./imu-motion",
+    "tone": "./tone",
+    "touch": "./touch",
+    "touch-panel": "./touch-panel",
+    "touch-panel-gesture": "./touch-panel-gesture",
+    "breath/mod": "../../../overlay/mods/breath/mod",
+    "breath/cry": "../../../overlay/mods/breath/cry",
+    "breath/liveliness": "../../../overlay/mods/breath/liveliness",
+    "breath/mic": "../../../overlay/mods/breath/mic",
+    "breath/reactions": "../../../overlay/mods/breath/reactions",
+    "breath/emotion": "../../../overlay/mods/breath/emotion",
+    "breath/posture": "../../../overlay/mods/breath/posture",
+    "breath/led": "../../../overlay/mods/breath/led",
+    "breath/power": "../../../overlay/mods/breath/power",
+    "breath/param-store": "../../../overlay/mods/breath/param-store",
+    "renderer-breath": "../../../overlay/mods/breath/face/renderer-breath",
+    "breath-face": "../../../overlay/mods/breath/face/breath-face",
+    "eye-cozmo": "../../../overlay/mods/breath/face/eye-cozmo",
+    "status-bar": "../../../overlay/mods/breath/status-bar",
+    "settings-bar": "../../../overlay/mods/breath/settings-bar",
+    "breath/dev/trace-udp": "../../../overlay/mods/breath/dev/trace-udp",
+    "breath/dev/dev-server": "../../../overlay/mods/breath/dev/dev-server",
+    "breath/dev/beacon": "../../../overlay/mods/breath/dev/beacon",
+    "breath/dev/dev-tools": "../../../overlay/mods/breath/dev/dev-tools"
+  },
+  "resources": {
+    "*-mask": [
+      "$(MODDABLE)/examples/assets/fonts/OpenSans-Regular-20",
+      "$(MODDABLE)/examples/assets/fonts/OpenSans-Regular-16"
+    ],
+    "*-alpha": [
+      "./assets/images/microphone",
+      "./assets/images/indicator",
+      "./assets/images/bubble",
+      {
+        "source": "./assets/fonts/k8x12",
+        "size": 12,
+        "characterFiles": "./assets/fonts/k8x12-chars.txt",
+        "monochrome": true
+      }
+    ]
+  },
+  "preload": [
+    "wifi/connection",
+    "consts",
+    "stackchan-util",
+    "mac-address",
+    "robot",
+    "touch",
+    "touch-panel",
+    "touch-panel-gesture",
+    "imu",
+    "imu-motion",
+    "tone",
+    "microphone"
+  ],
+  "config": {
+    "sntp": "pool.ntp.org"
+  },
+  "typescript": {
+    "tsconfig": {
+      "compilerOptions": {
+        "noImplicitAny": false,
+        "noImplicitThis": false,
+        "strictNullChecks": false,
+        "strictPropertyInitialization": false,
+        "strictFunctionTypes": false,
+        "lib": ["es2025", "esnext.disposable"]
+      }
+    }
+  },
+  "platforms": {
+    "esp32/m5stackchan_cores3": {
+      "creation": {
+        "static": 0,
+        "chunk": {
+          "initial": 262144,
+          "incremental": 0
+        },
+        "heap": {
+          "initial": 4096,
+          "incremental": 256
+        },
+        "stack": 512,
+        "keys": {
+          "initial": 32,
+          "incremental": 32
+        }
+      }
+    }
+  }
+}

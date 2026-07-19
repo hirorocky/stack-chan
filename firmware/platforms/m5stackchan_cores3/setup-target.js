@@ -87,6 +87,9 @@ function patchStackChanPower() {
 }
 
 export default function (done) {
+	// The upstream target manifest supplies bflatmajor.maud as startupSound.
+	// breath deploys must be silent; override the target default before setup reads config.
+	config.startupSound = false;
 	baseSetup(() => {
 		try {
 			patchStackChanPower();

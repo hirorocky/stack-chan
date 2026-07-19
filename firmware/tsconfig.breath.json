@@ -1,0 +1,47 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "allowJs": false,
+    "checkJs": false,
+    "noEmit": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "useUnknownInCatchVariables": true,
+    "noImplicitOverride": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "rootDir": "../..",
+    "paths": {
+      "breath-policy-loader": ["./stackchan/breath-policy-loader"],
+      "breath/*": ["../../overlay/mods/breath/*"],
+      "breath-policy/*": ["../../overlay/mods/breath-policy/*"],
+      "breath-face": ["../../overlay/mods/breath/face/breath-face"],
+      "eye-cozmo": ["../../overlay/mods/breath/face/eye-cozmo"],
+      "settings-bar": ["../../overlay/mods/breath/settings-bar"],
+      "status-bar": ["../../overlay/mods/breath/status-bar"],
+      "*": [
+        "./node_modules/@moddable/typings/*",
+        "./typings/*"
+      ],
+      "commodetto/*": ["./node_modules/@moddable/typings/commodetto/*"],
+      "embedded:io/*": ["./node_modules/@moddable/typings/embedded_io/*"],
+      "embedded:network/http/*": ["./node_modules/@moddable/typings/embedded_network/http/*"],
+      "embedded:update": ["./node_modules/@moddable/typings/embedded/update"],
+      "piu/*": ["./node_modules/@moddable/typings/piu/*"]
+    }
+  },
+  "include": [
+    "../../overlay/mods/**/*.ts",
+    "stackchan/breath-policy-loader.ts"
+  ]
+}

@@ -1,10 +1,11 @@
 {
   "include": [
-    "./manifest_m5stackchan_cores3.json",
+    "./manifest_breath_lean.json",
     "$(MODDABLE)/modules/io/update/manifest.json"
   ],
   "config": {
     "breathHostMod": true,
+    "startupSound": false,
     "breathDevTools": true,
     "enablePowerButton": false,
     "devToken": "breath-dev",
@@ -43,10 +44,13 @@
     "breath/led": "../../../overlay/mods/breath/led",
     "breath/power": "../../../overlay/mods/breath/power",
     "breath/param-store": "../../../overlay/mods/breath/param-store",
+    "breath/types": "../../../overlay/mods/breath/types",
     "renderer-breath": "../../../overlay/mods/breath/face/renderer-breath",
     "breath-face": "../../../overlay/mods/breath/face/breath-face",
     "eye-cozmo": "../../../overlay/mods/breath/face/eye-cozmo",
     "status-bar": "../../../overlay/mods/breath/status-bar",
+    "policy-error": "../../../overlay/mods/breath/policy-error",
+    "deploy-notice": "../../../overlay/mods/breath/deploy-notice",
     "settings-bar": "../../../overlay/mods/breath/settings-bar",
     "breath/dev/trace-udp": "../../../overlay/mods/breath/dev/trace-udp",
     "breath/dev/dev-server": "../../../overlay/mods/breath/dev/dev-server",

@@ -9,26 +9,24 @@
     "checkJs": false,
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "baseUrl": ".",
-    "ignoreDeprecations": "6.0",
     "paths": {
       "camera": [
-        "stackchan/wasm/camera.ts"
+        "./stackchan/wasm/camera.ts"
       ],
       "wasm-driver": [
-        "stackchan/drivers/wasm/wasm-driver.ts"
+        "./stackchan/drivers/wasm/wasm-driver.ts"
       ],
       "face-context": [
-        "stackchan/renderers-piu/face-context.ts"
+        "./stackchan/renderers-piu/face-context.ts"
       ],
       "parts/*": [
-        "stackchan/renderers-piu/parts/*"
+        "./stackchan/renderers-piu/parts/*"
       ],
       "parts/image/image-avatar-pack": [
-        "stackchan/renderers-piu/parts/image/image-avatar-pack.ts"
+        "./stackchan/renderers-piu/parts/image/image-avatar-pack.ts"
       ],
       "parts/image/image-avatar-state": [
-        "stackchan/renderers-piu/parts/image/image-avatar-state.ts"
+        "./stackchan/renderers-piu/parts/image/image-avatar-state.ts"
       ]
     },
     "types": [

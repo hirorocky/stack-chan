@@ -16,6 +16,9 @@ import type TouchPanel from 'touch-panel'
 const INTERVAL_FACE = 1000 / 30
 const INTERVAL_POSE = 1000 / 10
 const HEX_DIGITS = '0123456789abcdef'
+// breath MOD: SCServoの位置readはUART応答待ちを伴い、顔・タッチと同じJSスレッドを
+// 100msごとに止める。false時はsetPoseの成功指令値を姿勢キャッシュの正とする。
+const POLL_SERVO_POSITION = config.breathServoPositionPolling !== false
 // breath MOD: 首(サーボ)追従の閾値。既定は upstream 通り 30°(Math.PI/6)だが、
 // config.gazeServoFollowDeg で上書きできるようにする。breath では idle サッカードの
 // 大半が首を動かして騒音になるのを防ぐため 45° に上げる(manifest_breath_deploy.json)。
@@ -39,6 +42,8 @@ export type Driver = {
   setTorque: (torque: boolean) => Promise<void>
   onAttached?: () => void
   onDetached?: () => void
+  setEnabled?: (enabled: boolean) => void
+  isEnabled?: () => boolean
 }
 
 /**
@@ -391,6 +396,26 @@ export class Robot {
     return this.#tone?.tone(hz, duration, volume)
   }
 
+  async toneSequence(tones: readonly Readonly<{ hz: number; durationMs: number }>[], volume?: number): Promise<void> {
+    if (volume !== undefined && (volume < 0 || volume > 1)) throw new Error('Volume must be between 0 and 1')
+    return this.#tone?.toneSequence(tones, volume)
+  }
+
+  async playAudioResource(resourceName: string, volume?: number, sampleRate?: number): Promise<void> {
+    if (volume !== undefined && (volume < 0 || volume > 1)) throw new Error('Volume must be between 0 and 1')
+    return this.#tone?.playAudioResource(resourceName, volume, sampleRate)
+  }
+
+  /** Set a master multiplier shared by tones and audio resources. */
+  setAudioOutputVolume(volume: number): void {
+    if (!Number.isFinite(volume) || volume < 0 || volume > 1) throw new Error('Volume must be between 0 and 1')
+    this.#tone?.setOutputVolume(volume)
+  }
+
+  getAudioOutputVolume(): number {
+    return this.#tone?.getOutputVolume() ?? 1
+  }
+
   async playAudio(buffer: ArrayBuffer): Promise<boolean> {
     const player = this.#tone as unknown as { play?: (buffer: ArrayBuffer) => Promise<boolean> | boolean } | undefined
     return (await player?.play?.(buffer)) ?? false
@@ -460,7 +485,8 @@ export class Robot {
    * @experimental
    */
   async setPose(pose: Pose, time?: number): Promise<void> {
-    return this.#driver.applyRotation(pose.rotation, time)
+    await this.#driver.applyRotation(pose.rotation, time)
+    if (!POLL_SERVO_POSITION) this.#pose.body.rotation = { ...pose.rotation }
   }
 
   /**
@@ -647,9 +673,11 @@ export class Robot {
       return
     }
     this.updating = true
-    const result = await this.#driver.getRotation()
-    if (result.success) {
-      this.#pose.body.rotation = result.value
+    if (POLL_SERVO_POSITION) {
+      const result = await this.#driver.getRotation()
+      if (result.success) {
+        this.#pose.body.rotation = result.value
+      }
     }
 
     if (!this.#isMoving && this.#gazePoint != null) {
@@ -668,7 +696,7 @@ export class Robot {
         this.#isMoving = true
         const time = randomBetween(0.5, 1.0)
         await this.#driver.setTorque(true)
-        await this.#driver.applyRotation(Rotation.fromVector3(this.#gazePoint), time)
+        await this.setPose({ ...this.#pose.body, rotation: Rotation.fromVector3(this.#gazePoint) }, time)
         Timer.set(
           async () => {
             await this.#driver.setTorque(false)

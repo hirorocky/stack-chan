@@ -9,6 +9,14 @@ const REG_POWER_ON_SOURCE = 0x20;
 const REG_PWROK_SETTING = 0x25;
 const REG_IRQ_ENABLE1 = 0x41;
 const POWER_KEY_IRQ_MASK = 0x0c;
+const BATTERY_CURRENT_DIRECTION_MASK = 0x60;
+const BATTERY_CURRENT_DIRECTION_CHARGE = 0x20;
+
+export function isBatteryChargingStatus(status) {
+	// AXP2101 REG01[6:5] is a two-bit direction field: 01=charge,
+	// 10=discharge. Testing bit 6 alone reverses those two states.
+	return (status & BATTERY_CURRENT_DIRECTION_MASK) === BATTERY_CURRENT_DIRECTION_CHARGE;
+}
 
 export function registerPowerIO(io) {
 	powerIO = io;
@@ -53,7 +61,7 @@ export function readBatterySample() {
 		const mv = ((hi & 0x1f) << 8) | lo;
 		let pct = powerIO.readUint8(0xa4);
 		if (pct > 100 || pct <= 0) pct = pctFromMilliVolts(mv);
-		const charging = Boolean(powerIO.readUint8(0x01) & 0x40);
+		const charging = isBatteryChargingStatus(powerIO.readUint8(0x01));
 		return {
 			pct: Math.min(100, Math.max(0, pct)),
 			mv,

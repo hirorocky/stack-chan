@@ -6,7 +6,7 @@ import {
   rawPositionToAngle,
   rotationToM5StackChanServoAngles,
 } from 'm5stackchan-servo'
-import { getSharedPY32IOExpander } from 'py32-io-expander'
+import { getSharedPY32IOExpander, resetSharedPY32IOExpander } from 'py32-io-expander'
 import SCServo from 'scservo'
 import type { Maybe, Rotation } from 'stackchan-util'
 
@@ -35,6 +35,7 @@ export class M5StackChanServoDriver {
   #servoPower?: {
     setEnabled: (enabled: boolean) => void
   }
+  #enabled = true
 
   constructor(param: M5StackChanServoDriverProps = {}) {
     this.#config = createM5StackChanServoConfig({
@@ -59,25 +60,37 @@ export class M5StackChanServoDriver {
       try {
         this.#servoPower = new PY32ServoPower(param.servoPower?.pin ?? 0, param.servoPower?.address)
       } catch (error) {
+        resetSharedPY32IOExpander()
         trace(`[m5stackchan-servo] PY32 servo power init failed: ${error}\n`)
       }
     }
   }
 
   onAttached() {
-    this.#servoPower?.setEnabled(true)
+    try {
+      this.#servoPower?.setEnabled(this.#enabled)
+    } catch (error) {
+      // サーボ電源I2Cの一時的な失敗でRobot全体（顔・操作UI）を起動不能にしない。
+      trace(`[m5stackchan-servo] servo power-on failed: ${error}\n`)
+    }
   }
 
   onDetached() {
-    this.#servoPower?.setEnabled(false)
+    try {
+      this.#servoPower?.setEnabled(false)
+    } catch (error) {
+      trace(`[m5stackchan-servo] servo power-off failed: ${error}\n`)
+    }
   }
 
   async setTorque(torque: boolean): Promise<void> {
+    if (!this.#enabled) return
     await this.#pan.setTorque(torque)
     await this.#tilt.setTorque(torque)
   }
 
   async applyRotation(ori: Rotation, time = 0.5): Promise<void> {
+    if (!this.#enabled) return
     const angles = rotationToM5StackChanServoAngles(ori)
     const panRawPosition = angleToRawPosition(angles.yaw, this.#config.yaw)
     const tiltRawPosition = angleToRawPosition(angles.pitch, this.#config.pitch)
@@ -92,6 +105,7 @@ export class M5StackChanServoDriver {
   }
 
   async getRotation(): Promise<Maybe<Rotation>> {
+    if (!this.#enabled) return { success: false }
     const panStatus = await this.#pan.readRawPosition()
     if (!panStatus.success) {
       return {
@@ -115,22 +129,50 @@ export class M5StackChanServoDriver {
       },
     }
   }
+
+  /** breath設定から全サーボ操作を一括で許可・遮断する。 */
+  setEnabled(enabled: boolean): void {
+    const next = enabled === true
+    if (next === this.#enabled) return
+    // OFFはUARTのトルク命令を送らず、共通電源ゲートで即時に止める。
+    // 先に論理ゲートを閉じ、同時刻の姿勢指令が電源断を追い越さないようにする。
+    this.#enabled = next
+    try {
+      this.#servoPower?.setEnabled(next)
+      trace(`[m5stackchan-servo] control ${next ? 'enabled' : 'disabled'}\n`)
+    } catch (error) {
+      trace(`[m5stackchan-servo] control ${next ? 'enable' : 'disable'} failed: ${error}\n`)
+      throw error
+    }
+  }
+
+  isEnabled(): boolean {
+    return this.#enabled
+  }
 }
 
 class PY32ServoPower {
   #pin: number
-  #expander: ReturnType<typeof getSharedPY32IOExpander>
+  #address?: number
 
   constructor(pin: number, address?: number) {
     this.#pin = pin
-    this.#expander = getSharedPY32IOExpander(address === undefined ? undefined : { address })
-    this.#expander.setDirection(this.#pin, true)
-    this.#expander.setPullMode(this.#pin, true)
+    this.#address = address
+    const expander = this.#getExpander()
+    expander.setDirection(this.#pin, true)
+    expander.setPullMode(this.#pin, true)
     trace(`[m5stackchan-servo] configured PY32 servo power pin ${this.#pin}\n`)
   }
 
   setEnabled(enabled: boolean) {
-    this.#expander.digitalWrite(this.#pin, enabled)
-    trace(`[m5stackchan-servo] servo power ${enabled ? 'on' : 'off'} (${this.#expander.getWriteValue(this.#pin)})\n`)
+    // LED初期化のリトライが共有I2Cインスタンスを作り直すことがある。
+    // 破棄済みインスタンスを保持せず、操作のたびに現在の共有接続を取得する。
+    const expander = this.#getExpander()
+    expander.digitalWrite(this.#pin, enabled)
+    trace(`[m5stackchan-servo] servo power ${enabled ? 'on' : 'off'} (${expander.getWriteValue(this.#pin)})\n`)
+  }
+
+  #getExpander() {
+    return getSharedPY32IOExpander(this.#address === undefined ? undefined : { address: this.#address })
   }
 }

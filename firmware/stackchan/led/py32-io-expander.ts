@@ -116,6 +116,11 @@ export class PY32IOExpander {
       trace(`[py32] invalid version: 0x${version.toString(16)}\n`)
       return false
     }
+    // A cold PY32 can answer the version read slightly before it accepts writes.
+    // Probe a no-op register write before publishing this instance as shared;
+    // failures are handled by getSharedPY32IOExpander's retry loop.
+    const direction = this.readRegister8(REG_GPIO_M_L)
+    this.writeRegister8(REG_GPIO_M_L, direction)
     trace(`[py32] version: 0x${version.toString(16)}\n`)
     this.#initialized = true
     return true
@@ -181,6 +186,13 @@ export class PY32IOExpander {
     this.writeRegister(REG_LED_RAM_START + index * 2, Uint8Array.of(color & 0xff, (color >> 8) & 0xff))
   }
 
+  /** RGB565LEに変換済みの連続LED RAMを1トランザクションで更新する。 */
+  setLedColorsRgb565(data: Uint8Array) {
+    const byteLength = Math.min(data.byteLength, PY32_LED_MAX_COUNT * 2) & ~1
+    if (byteLength <= 0) return
+    this.writeRegister(REG_LED_RAM_START, data.subarray(0, byteLength))
+  }
+
   refreshLeds() {
     this.writeRegister8(REG_LED_CFG, this.readRegister8(REG_LED_CFG) | (1 << 6))
   }
@@ -211,4 +223,10 @@ export function getSharedPY32IOExpander(options?: PY32Options) {
     throw lastError
   }
   return sharedExpander
+}
+
+export function resetSharedPY32IOExpander(expander?: PY32IOExpander) {
+  if (!sharedExpander || (expander && sharedExpander !== expander)) return
+  sharedExpander.close()
+  sharedExpander = undefined
 }

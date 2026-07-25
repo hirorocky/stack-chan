@@ -5,6 +5,9 @@ import { describe, test } from 'node:test'
 const stackchanManifest = JSON.parse(readFileSync('stackchan/manifest.json', 'utf8'))
 const m5StackChanPlatformManifest = JSON.parse(readFileSync('platforms/m5stackchan_cores3/manifest.json', 'utf8'))
 const m5StackChanStackchanManifest = JSON.parse(readFileSync('stackchan/manifest_m5stackchan_cores3.json', 'utf8'))
+const breathDeployManifest = JSON.parse(readFileSync('stackchan/manifest_breath_deploy.json', 'utf8'))
+const robotSource = readFileSync('stackchan/robot.ts', 'utf8')
+const batteryRegistrySource = readFileSync('platforms/m5stackchan_cores3/battery-registry.js', 'utf8')
 
 describe('Stack-chan platform manifest', () => {
   test('gives M5StackChan CoreS3 the same expandable XS creation heap as CoreS3', () => {
@@ -61,5 +64,27 @@ describe('Stack-chan platform manifest', () => {
     assert.match(smokeDocs, /esp32:\.\/platforms\/m5stackchan_cores3/)
     assert.match(smokeDocs, /stackchan\/manifest_m5stackchan_cores3\.json/)
     assert.match(smokeDocs, /mods\/m5stackchan_smoke\/manifest\.json/)
+  })
+
+  test('breath host caches successful pose commands instead of polling SCServo positions', () => {
+    assert.equal(breathDeployManifest.config.breathServoPositionPolling, false)
+    assert.match(robotSource, /const POLL_SERVO_POSITION = config\.breathServoPositionPolling !== false/)
+    assert.match(robotSource, /await this\.#driver\.applyRotation\(pose\.rotation, time\)/)
+    assert.match(robotSource, /if \(!POLL_SERVO_POSITION\) this\.#pose\.body\.rotation = \{ \.\.\.pose\.rotation \}/)
+    assert.match(robotSource, /if \(POLL_SERVO_POSITION\) \{\s*const result = await this\.#driver\.getRotation\(\)/)
+  })
+
+  test('decodes the AXP2101 battery current direction without reversing charge and discharge', async () => {
+    const moduleUrl = `data:text/javascript;base64,${Buffer.from(batteryRegistrySource).toString('base64')}`
+    const batteryRegistry = (await import(moduleUrl)) as {
+      isBatteryChargingStatus: (status: number) => boolean
+    }
+
+    assert.equal(batteryRegistry.isBatteryChargingStatus(0x20), true, 'REG01[6:5]=01 means charging')
+    assert.equal(batteryRegistry.isBatteryChargingStatus(0x40), false, 'REG01[6:5]=10 means discharging')
+    assert.equal(batteryRegistry.isBatteryChargingStatus(0x00), false, 'REG01[6:5]=00 means standby')
+    assert.equal(batteryRegistry.isBatteryChargingStatus(0x60), false, 'REG01[6:5]=11 is reserved')
+    assert.equal(batteryRegistry.isBatteryChargingStatus(0x23), true, 'charging phase bits do not change direction')
+    assert.equal(batteryRegistry.isBatteryChargingStatus(0x45), false, 'not-charging phase does not hide discharge')
   })
 })

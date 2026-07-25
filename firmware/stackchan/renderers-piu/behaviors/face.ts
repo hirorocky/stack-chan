@@ -48,6 +48,7 @@ export class FaceBehavior extends Behavior {
   #paused: boolean
   #skinPalette: FaceSkinPalette | null
   #breathPixels: number
+  #lastBreathY: number | null
 
   constructor({ motions, intervalMs }: FaceBehaviorOptions) {
     super()
@@ -62,6 +63,7 @@ export class FaceBehavior extends Behavior {
     this.#paused = false
     this.#skinPalette = null
     this.#breathPixels = 6
+    this.#lastBreathY = null
     this.intervalMs = intervalMs ?? 33
   }
 
@@ -125,10 +127,13 @@ export class FaceBehavior extends Behavior {
     }
     const base = this.#baseCoordinates ?? { left: 0, top: 0 }
     const nextY = base.top + this.#current.breath * this.#breathPixels
-    container.coordinates = {
-      ...(container.coordinates ?? {}),
-      left: base.left,
-      top: nextY,
+    if (nextY !== this.#lastBreathY) {
+      container.coordinates = {
+        ...(container.coordinates ?? {}),
+        left: base.left,
+        top: nextY,
+      }
+      this.#lastBreathY = nextY
     }
     const paletteChanged = this.updateSkinPalette(container, this.#current)
     if (paletteChanged && this.#skinPalette) {

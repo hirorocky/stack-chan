@@ -12,9 +12,20 @@ import { Renderer as BreathRenderer } from 'renderer-breath'
 import { Robot } from 'robot'
 import { asyncWait } from 'stackchan-util'
 import Tone from 'tone'
+import TouchPanel from 'touch-panel'
 
 const PY32_LED_INIT_RETRY_COUNT = 24
 const PY32_LED_INIT_RETRY_DELAY_MS = 50
+
+type GlobalEnvironment = {
+  device?: {
+    sensor?: {
+      TouchPanel?: new (options: unknown) => unknown
+    }
+  }
+}
+
+const globalEnv = globalThis as typeof globalThis & GlobalEnvironment
 
 async function createPY32Led(key: string, candidate: Record<string, unknown>) {
   let lastError: unknown
@@ -93,6 +104,9 @@ async function main() {
   const tts = { async stream() {} }
   boot.breathBootStage = 'renderer'
   const renderer = new BreathRenderer(loadPreferences('renderer'))
+  const touchPanel = globalEnv.device?.sensor?.TouchPanel
+    ? new TouchPanel(globalEnv.device.sensor.TouchPanel as ConstructorParameters<typeof TouchPanel>[0])
+    : undefined
   boot.breathBootStage = 'robot'
   const robot = new Robot({
     driver,
@@ -101,6 +115,7 @@ async function main() {
     button: globalThis.button,
     microphone: new Microphone(),
     tone: new Tone({ volume: loadPreferences('tts').volume }),
+    touchPanel,
     led: leds as unknown as ConstructorParameters<typeof Robot>[0]['led'],
   })
   boot.breathBootStage = 'breath-mod'

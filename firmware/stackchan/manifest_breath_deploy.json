@@ -33,8 +33,8 @@
       "numChannels": 2,
       "sampleRate": 48000,
       "maxInputBlock": 8192,
-      "dmaDescNum": 3,
-      "dmaFrameNum": 192
+      "dmaDescNum": 2,
+      "dmaFrameNum": 128
     }
   },
   "modules": {
@@ -47,6 +47,7 @@
     "breath/posture": "../../../overlay/mods/breath/posture",
     "breath/led": "../../../overlay/mods/breath/led",
     "breath/led-arousal-gate": "../../../overlay/mods/breath/led-arousal-gate",
+    "breath/pet-reaction": "../../../overlay/mods/breath/pet-reaction",
     "breath/power": "../../../overlay/mods/breath/power",
     "breath/param-store": "../../../overlay/mods/breath/param-store",
     "breath/adapters/lid": "../../../overlay/mods/breath/adapters/lid",
@@ -56,6 +57,7 @@
     "breath/motion/constraints": "../../../overlay/mods/breath/motion/constraints",
     "breath/motion/planner": "../../../overlay/mods/breath/motion/planner",
     "breath/motion/plan-statistics": "../../../overlay/mods/breath/motion/plan-statistics",
+    "breath/motion/pet-reaction-plan": "../../../overlay/mods/breath/motion/pet-reaction-plan",
     "breath/motion/preview-profile": "../../../overlay/mods/breath/motion/preview-profile",
     "breath/motion/primitive": "../../../overlay/mods/breath/motion/primitive",
     "breath/motion/transition-graph": "../../../overlay/mods/breath/motion/transition-graph",
@@ -71,7 +73,10 @@
     "breath/runtime/stillness-window": "../../../overlay/mods/breath/runtime/stillness-window",
     "breath/state/ambient-arousal": "../../../overlay/mods/breath/state/ambient-arousal",
     "breath/state/emotion-graph": "../../../overlay/mods/breath/state/emotion-graph",
+    "breath/state/petting": "../../../overlay/mods/breath/state/petting",
+    "breath/state/touch-valence": "../../../overlay/mods/breath/state/touch-valence",
     "breath/state/time-random": "../../../overlay/mods/breath/state/time-random",
+    "breath/touch-interactions": "../../../overlay/mods/breath/touch-interactions",
     "breath/types": "../../../overlay/mods/breath/types",
     "renderer-breath": "../../../overlay/mods/breath/face/renderer-breath",
     "breath-face": "../../../overlay/mods/breath/face/breath-face",

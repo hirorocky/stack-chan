@@ -69,10 +69,41 @@ describe('breath deploy transport selection', () => {
   })
 })
 
-test('native USB deployment uses the shared detector and verifies arousal helper modules', () => {
+test('native USB deployment uses the shared detector and verifies breath helper modules', () => {
   const source = readFileSync(join(repoRoot, 'overlay/scripts/native-deploy.sh'), 'utf8')
   assert.match(source, /stackchan-usb-port\.sh/)
   assert.match(source, /modules\/breath\/led-arousal-gate\.xsb/)
   assert.match(source, /modules\/breath\/state\/ambient-arousal\.xsb/)
+  assert.match(source, /modules\/breath\/state\/petting\.xsb/)
+  assert.match(source, /modules\/breath\/touch-interactions\.xsb/)
+  assert.match(source, /modules\/breath\/state\/touch-valence\.xsb/)
+  assert.match(source, /modules\/breath\/motion\/pet-reaction-plan\.xsb/)
+  assert.match(source, /modules\/breath\/pet-reaction\.xsb/)
+  assert.match(source, /"breath\/touch-interactions"/)
+  assert.match(source, /"breath\/state\/touch-valence"/)
+  assert.match(source, /"breath\/state\/petting"/)
+  assert.match(source, /"breath\/motion\/pet-reaction-plan"/)
+  assert.match(source, /"breath\/pet-reaction"/)
   assert.match(source, /manifest_flat\.json/)
+})
+
+test('touch valence modules are registered in both breath host manifests and started by the breath MOD', () => {
+  const manifests = ['manifest_breath_deploy.json', 'manifest_breath_lean.json']
+  for (const filename of manifests) {
+    const manifest = JSON.parse(readFileSync(join(repoRoot, 'stack-chan/firmware/stackchan', filename), 'utf8')) as {
+      modules: Record<string, string>
+    }
+    assert.equal(manifest.modules['breath/touch-interactions'], '../../../overlay/mods/breath/touch-interactions')
+    assert.equal(manifest.modules['breath/state/touch-valence'], '../../../overlay/mods/breath/state/touch-valence')
+    assert.equal(manifest.modules['breath/state/petting'], '../../../overlay/mods/breath/state/petting')
+    assert.equal(
+      manifest.modules['breath/motion/pet-reaction-plan'],
+      '../../../overlay/mods/breath/motion/pet-reaction-plan',
+    )
+    assert.equal(manifest.modules['breath/pet-reaction'], '../../../overlay/mods/breath/pet-reaction')
+  }
+
+  const modSource = readFileSync(join(repoRoot, 'overlay/mods/breath/mod.ts'), 'utf8')
+  assert.match(modSource, /import \{ startTouchInteractions \} from 'breath\/touch-interactions'/)
+  assert.match(modSource, /startTouchInteractions\(robot\)/)
 })

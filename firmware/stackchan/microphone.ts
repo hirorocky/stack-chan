@@ -15,15 +15,25 @@ export default class Microphone {
       throw new Error('already recording')
     }
     const self = this
-    this.#audioIn = new AudioIn({
+    const audioIn = new AudioIn({
       onReadable(size, sampleCount) {
         if (self.onReadable) {
           self.onReadable.call(this, size, sampleCount)
         }
       },
     })
-    this.#audioIn.start()
-    this.recording = true
+    this.#audioIn = audioIn
+    try {
+      audioIn.start()
+      this.recording = true
+    } catch (error) {
+      // breath: I2S初期化失敗時も16KBの入力bufferを次の再試行まで残さない。
+      try {
+        audioIn.close()
+      } catch {}
+      this.#audioIn = null
+      throw error
+    }
   }
 
   stop() {

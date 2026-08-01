@@ -69,7 +69,10 @@ describe('breath deploy transport selection', () => {
   })
 })
 
-test('native USB deployment uses the shared detector', () => {
+test('native USB deployment uses the shared detector and verifies arousal helper modules', () => {
   const source = readFileSync(join(repoRoot, 'overlay/scripts/native-deploy.sh'), 'utf8')
   assert.match(source, /stackchan-usb-port\.sh/)
+  assert.match(source, /modules\/breath\/led-arousal-gate\.xsb/)
+  assert.match(source, /modules\/breath\/state\/ambient-arousal\.xsb/)
+  assert.match(source, /manifest_flat\.json/)
 })
